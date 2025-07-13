@@ -11,54 +11,174 @@
             margin: 50px auto;
             padding: 20px;
             text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
         }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            margin-bottom: 40px;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
         .wallet-button {
             display: block;
             width: 100%;
-            padding: 15px;
-            margin: 10px 0;
+            padding: 18px;
+            margin: 15px 0;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            background: #2563EB;
+            background: linear-gradient(135deg, #2563EB, #1d4ed8);
             color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
         }
+        
         .wallet-button:hover {
-            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
         }
+        
+        .wallet-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
         .status {
             margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
-            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .success {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #10b981;
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+        
+        .manual-return {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .return-button {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            margin-top: 15px;
+            font-size: 18px;
+            padding: 15px 30px;
+        }
+        
+        .return-button:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Connect Your Wallet</h1>
-    <p>Choose your wallet to connect to SecureVault:</p>
-    
-    <button class="wallet-button" onclick="connectMetaMask()">
-        🦊 Connect MetaMask
-    </button>
-    
-    <button class="wallet-button" onclick="connectTrustWallet()">
-        🛡️ Connect Trust Wallet
-    </button>
-    
-    <div id="status" class="status" style="display: none;"></div>
+    <div class="container">
+        <h1>🔐 SecureVault</h1>
+        <p class="subtitle">Connect your wallet to access your encrypted files</p>
+        
+        <button class="wallet-button" onclick="connectMetaMask()" id="metamask-btn">
+            <span class="icon">🦊</span>Connect MetaMask
+        </button>
+        
+        <button class="wallet-button" onclick="connectTrustWallet()" disabled>
+            <span class="icon">🛡️</span>Trust Wallet (Coming Soon)
+        </button>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <!-- Manual return section (hidden initially) -->
+        <div id="manual-return" class="status manual-return" style="display: none;">
+            <h3>🎉 Connection Successful!</h3>
+            <p>Your wallet is now connected to SecureVault.</p>
+            <p><strong>If the app didn't open automatically, click below:</strong></p>
+            <button class="wallet-button return-button" onclick="returnToApp()">
+                🚀 Return to SecureVault Desktop
+            </button>
+            <p style="font-size: 14px; margin-top: 15px; opacity: 0.8;">
+                You can also manually switch back to the SecureVault app
+            </p>
+        </div>
+    </div>
 
     <script>
+        let connectedWallet = null;
+        let connectionAttempts = 0;
+        
         async function connectMetaMask() {
+            const btn = document.getElementById('metamask-btn');
+            
             try {
+                // Disable button and show loading
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading"></span>Connecting...';
+                
+                // Check if MetaMask is installed
                 if (typeof window.ethereum === 'undefined') {
-                    showStatus('Please install MetaMask browser extension first!', 'error');
+                    showStatus('❌ MetaMask not found! Please install the MetaMask browser extension first.', 'error');
+                    resetButton();
                     return;
                 }
                 
-                showStatus('Connecting to MetaMask...', 'info');
+                showStatus('🔄 Requesting wallet connection...', 'info');
                 
+                // Request account access
                 const accounts = await window.ethereum.request({
                     method: 'eth_requestAccounts'
                 });
@@ -67,37 +187,131 @@
                     const walletAddress = accounts[0];
                     const connectionToken = generateToken(walletAddress);
                     
-                    showStatus('Connected! Redirecting back to SecureVault...', 'success');
+                    // Store connection info
+                    connectedWallet = { 
+                        address: walletAddress, 
+                        token: connectionToken 
+                    };
                     
+                    showStatus('✅ Connected successfully! Redirecting to SecureVault...', 'success');
+                    
+                    // Try immediate deep link
+                    attemptDeepLink();
+                    
+                    // Show manual return option after 3 seconds
                     setTimeout(() => {
-                        window.location.href = `securevault://wallet-connected?address=${walletAddress}&token=${connectionToken}`;
-                    }, 2000);
+                        if (document.getElementById('status').style.display !== 'none') {
+                            showManualReturn();
+                        }
+                    }, 3000);
                 }
+                
             } catch (error) {
-                showStatus(`Connection failed: ${error.message}`, 'error');
+                console.error('Connection error:', error);
+                
+                if (error.code === 4001) {
+                    showStatus('❌ Connection rejected. Please try again and approve the connection.', 'error');
+                } else if (error.code === -32002) {
+                    showStatus('⏳ MetaMask is already processing a request. Please check MetaMask.', 'error');
+                } else {
+                    showStatus(`❌ Connection failed: ${error.message}`, 'error');
+                }
+                
+                resetButton();
             }
         }
         
+        function attemptDeepLink() {
+            if (!connectedWallet) return;
+            
+            connectionAttempts++;
+            const deepLink = `securevault://wallet-connected?address=${connectedWallet.address}&token=${connectedWallet.token}`;
+            
+            console.log(`Attempting deep link (attempt ${connectionAttempts}):`, deepLink);
+            
+            // Try to open the deep link
+            window.location.href = deepLink;
+            
+            // For some browsers, try a different approach
+            setTimeout(() => {
+                try {
+                    const link = document.createElement('a');
+                    link.href = deepLink;
+                    link.click();
+                } catch (e) {
+                    console.log('Alternative deep link method failed:', e);
+                }
+            }, 500);
+        }
+        
+        function returnToApp() {
+            if (connectedWallet) {
+                attemptDeepLink();
+                
+                // Show feedback
+                showStatus('🔄 Attempting to open SecureVault...', 'info');
+                
+                // If still not working after 2 seconds, show additional help
+                setTimeout(() => {
+                    if (document.getElementById('manual-return').style.display !== 'none') {
+                        showStatus('💡 If SecureVault still doesn\'t open, please manually switch to the app or check if it\'s running.', 'info');
+                    }
+                }, 2000);
+            }
+        }
+        
+        function showManualReturn() {
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('manual-return').style.display = 'block';
+            resetButton();
+        }
+        
+        function resetButton() {
+            const btn = document.getElementById('metamask-btn');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="icon">🦊</span>Connect MetaMask';
+        }
+        
         async function connectTrustWallet() {
-            showStatus('Trust Wallet integration coming soon!', 'info');
+            showStatus('🚧 Trust Wallet integration coming soon! Please use MetaMask for now.', 'info');
         }
         
         function generateToken(address) {
             const timestamp = Date.now();
             const randomStr = Math.random().toString(36).substring(2);
-            return btoa(`${address}-${timestamp}-${randomStr}`).substring(0, 32);
+            const combined = `${address}-${timestamp}-${randomStr}`;
+            return btoa(combined).substring(0, 32);
         }
         
         function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
+            statusDiv.innerHTML = message;
             statusDiv.style.display = 'block';
+            statusDiv.className = `status ${type}`;
             
-            statusDiv.style.background = type === 'error' ? '#fee2e2' : 
-                                       type === 'success' ? '#dcfce7' : '#f3f4f6';
-            statusDiv.style.color = type === 'error' ? '#dc2626' : 
-                                   type === 'success' ? '#16a34a' : '#374151';
+            // Hide manual return when showing new status
+            document.getElementById('manual-return').style.display = 'none';
         }
+        
+        // Check if page was opened from deep link (back navigation)
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('reconnect') === 'true') {
+                showStatus('🔄 Reconnection attempt. Please connect your wallet again.', 'info');
+            }
+        });
+        
+        // Handle page visibility changes (when user returns to tab)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && connectedWallet) {
+                // User returned to tab, maybe deep link didn't work
+                setTimeout(() => {
+                    if (document.getElementById('status').style.display !== 'none') {
+                        showManualReturn();
+                    }
+                }, 1000);
+            }
+        });
     </script>
 </body>
 </html>
