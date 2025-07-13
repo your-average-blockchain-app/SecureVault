@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Connect Wallet - SecureVault</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .wallet-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #2563EB;
+            color: white;
+        }
+        .wallet-button:hover {
+            background: #1d4ed8;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect Your Wallet</h1>
+    <p>Choose your wallet to connect to SecureVault:</p>
+    
+    <button class="wallet-button" onclick="connectMetaMask()">
+        🦊 Connect MetaMask
+    </button>
+    
+    <button class="wallet-button" onclick="connectTrustWallet()">
+        🛡️ Connect Trust Wallet
+    </button>
+    
+    <div id="status" class="status" style="display: none;"></div>
+
+    <script>
+        async function connectMetaMask() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showStatus('Please install MetaMask browser extension first!', 'error');
+                    return;
+                }
+                
+                showStatus('Connecting to MetaMask...', 'info');
+                
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                
+                if (accounts.length > 0) {
+                    const walletAddress = accounts[0];
+                    const connectionToken = generateToken(walletAddress);
+                    
+                    showStatus('Connected! Redirecting back to SecureVault...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = `securevault://wallet-connected?address=${walletAddress}&token=${connectionToken}`;
+                    }, 2000);
+                }
+            } catch (error) {
+                showStatus(`Connection failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function connectTrustWallet() {
+            showStatus('Trust Wallet integration coming soon!', 'info');
+        }
+        
+        function generateToken(address) {
+            const timestamp = Date.now();
+            const randomStr = Math.random().toString(36).substring(2);
+            return btoa(`${address}-${timestamp}-${randomStr}`).substring(0, 32);
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            statusDiv.style.background = type === 'error' ? '#fee2e2' : 
+                                       type === 'success' ? '#dcfce7' : '#f3f4f6';
+            statusDiv.style.color = type === 'error' ? '#dc2626' : 
+                                   type === 'success' ? '#16a34a' : '#374151';
+        }
+    </script>
+</body>
+</html>
