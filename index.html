@@ -1,226 +1,201 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Connect Wallet - SecureVault</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-        }
-        
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
-        .wallet-button {
-            display: block;
-            width: 100%;
-            padding: 18px;
-            margin: 15px 0;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            background: linear-gradient(135deg, #2563EB, #1d4ed8);
-            color: white;
-            transition: all 0.3s ease;
-        }
-        
-        .wallet-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
-        }
-        
-        .wallet-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .success {
-            background: rgba(34, 197, 94, 0.2);
-            border: 2px solid rgba(34, 197, 94, 0.4);
-            color: #10b981;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-        
-        .status {
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <title>Connect Wallet - SecureVault</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .wallet-button {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      margin: 15px 0;
+      border: none;
+      border-radius: 15px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #2563EB, #1d4ed8);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .wallet-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    }
+
+    .wallet-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .success {
+      background: rgba(34, 197, 94, 0.2);
+      border: 2px solid rgba(34, 197, 94, 0.4);
+      color: #10b981;
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .status {
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔐 SecureVault</h1>
-        <p>Connect your wallet to access your encrypted files</p>
-        
-        <button class="wallet-button" onclick="connectMetaMask()" id="metamask-btn">
-            🦊 Connect MetaMask
-        </button>
-        
-        <div id="status" class="status" style="display: none;"></div>
-        
-        <!-- Success message with instructions -->
-        <div id="success-message" class="success" style="display: none;">
-            <h3>🎉 Wallet Connected Successfully!</h3>
-            <p><strong>Your wallet is now connected to SecureVault.</strong></p>
-            <p>You can now <strong>close this browser tab</strong> and return to the SecureVault desktop app.</p>
-            <p><small>The app will automatically detect your connection within a few seconds.</small></p>
-        </div>
-    </div>
+<div class="container">
+  <h1>🔐 SecureVault</h1>
+  <p>Connect your wallet to access your encrypted files</p>
 
-    <script>
-        let connectionData = null;
-        
-     async function connectMetaMask() {
+  <button class="wallet-button" onclick="connectMetaMask()" id="metamask-btn">
+    🦊 Connect MetaMask
+  </button>
+
+  <div id="status" class="status" style="display: none;"></div>
+
+  <div id="success-message" class="success" style="display: none;">
+    <h3>🎉 Wallet Connected Successfully!</h3>
+    <p><strong>Your wallet is now connected to SecureVault.</strong></p>
+    <p>You can now <strong>close this browser tab</strong> and return to the SecureVault desktop app.</p>
+    <p><small>The app will automatically detect your connection within a few seconds.</small></p>
+  </div>
+</div>
+
+<script>
+  async function connectMetaMask() {
     const btn = document.getElementById('metamask-btn');
-    
-    try {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="loading"></span>Connecting...';
-        
-        if (typeof window.ethereum === 'undefined') {
-            showStatus('❌ MetaMask not found! Please install MetaMask browser extension.');
-            resetButton();
-            return;
-        }
-        
-        showStatus('🔄 Requesting wallet connection...');
-        
-        const accounts = await window.ethereum.request({
-            method: 'eth_requestAccounts'
-        });
-        
-        if (accounts.length > 0) {
-            const walletAddress = accounts[0];
-            const connectionToken = generateToken(walletAddress);
-            
-            connectionData = {
-                address: walletAddress,
-                token: connectionToken,
-                timestamp: Date.now(),
-                connected: true
-            };
-            
-            // 🧠 Tell the Flutter desktop app you've connected
-            await fetch('http://127.0.0.1:5050/wallet-connect', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                address: walletAddress,
-                token: connectionToken
-              }),
-            });
-            
-            showStatus('✅ Wallet connected! You can return to SecureVault.', 'success');
-            document.getElementById('success-message').style.display = 'block';
-            btn.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('Connection error:', error);
-        
-        if (error.code === 4001) {
-            showStatus('❌ Connection rejected. Please try again and approve it.');
-        } else if (error.code === -32002) {
-            showStatus('⏳ MetaMask is already processing a request.');
-        } else {
-            showStatus(`❌ Connection failed: ${error.message}`);
-        }
-        
-        resetButton();
-    }
-}
 
-        
-        // Save connection to backend (optional - implement if needed)
-        async function saveConnectionToBackend(data) {
-            try {
-                // This would be your backend endpoint to save connection state
-                // await fetch('/api/save-connection', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(data)
-                // });
-                console.log('Connection would be saved to backend:', data);
-            } catch (e) {
-                console.log('Backend save failed (optional):', e);
-            }
-        }
-        
-        function generateToken(address) {
-            const timestamp = Date.now();
-            const randomStr = Math.random().toString(36).substring(2);
-            return btoa(`${address}-${timestamp}-${randomStr}`).substring(0, 32);
-        }
-        
-        function showStatus(message) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = message;
-            statusDiv.style.display = 'block';
-        }
-        
-        function resetButton() {
-            const btn = document.getElementById('metamask-btn');
-            btn.disabled = false;
-            btn.innerHTML = '🦊 Connect MetaMask';
-        }
-        
-        // Check if there's already a connection on page load
-        window.addEventListener('load', () => {
-            const existingConnection = localStorage.getItem('securevault_connection');
-            if (existingConnection) {
-                try {
-                    const data = JSON.parse(existingConnection);
-                    if (data.connected && data.address) {
-                        document.getElementById('success-message').style.display = 'block';
-                        document.getElementById('metamask-btn').style.display = 'none';
-                    }
-                } catch (e) {
-                    console.log('Error checking existing connection:', e);
-                }
-            }
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span>Connecting...';
+
+      if (typeof window.ethereum === 'undefined') {
+        showStatus('❌ MetaMask not found! Please install it first.');
+        resetButton();
+        return;
+      }
+
+      showStatus('🔄 Requesting wallet access...');
+
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
+      });
+
+      if (accounts.length > 0) {
+        const address = accounts[0];
+        const token = generateToken(address);
+
+        // ✅ Send the connection info to desktop Flutter app
+        const result = await fetch('http://127.0.0.1:5050/wallet-connect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            address: address,
+            token: token
+          }),
         });
-    </script>
+
+        if (result.ok) {
+          showStatus('✅ Wallet connected! Return to SecureVault app.', 'success');
+          document.getElementById('success-message').style.display = 'block';
+          btn.style.display = 'none';
+        } else {
+          showStatus('❌ Failed to communicate with the SecureVault app.');
+          resetButton();
+        }
+      }
+    } catch (error) {
+      console.error('Connection error:', error);
+
+      if (error.code === 4001) {
+        showStatus('❌ You rejected the connection 😔');
+      } else if (error.code === -32002) {
+        showStatus('⏳ MetaMask is already requesting permission.');
+      } else {
+        showStatus(`❌ Error: ${error.message || 'Unknown error'}`);
+      }
+
+      resetButton();
+    }
+  }
+
+  function generateToken(address) {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2);
+    return btoa(`${address}-${timestamp}-${randomStr}`).substring(0, 32);
+  }
+
+  function showStatus(message) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = message;
+    statusDiv.style.display = 'block';
+  }
+
+  function resetButton() {
+    const btn = document.getElementById('metamask-btn');
+    btn.disabled = false;
+    btn.innerHTML = '🦊 Connect MetaMask';
+  }
+
+  // Auto-show success if already connected (optional enhancement)
+  window.addEventListener('load', () => {
+    const connection = localStorage.getItem('securevault_connection');
+    if (connection) {
+      const data = JSON.parse(connection);
+      if (data.connected && data.address) {
+        document.getElementById('success-message').style.display = 'block';
+        document.getElementById('metamask-btn').style.display = 'none';
+      }
+    }
+  });
+</script>
 </body>
 </html>
