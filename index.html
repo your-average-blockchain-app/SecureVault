@@ -111,65 +111,67 @@
     <script>
         let connectionData = null;
         
-        async function connectMetaMask() {
-            const btn = document.getElementById('metamask-btn');
-            
-            try {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="loading"></span>Connecting...';
-                
-                if (typeof window.ethereum === 'undefined') {
-                    showStatus('❌ MetaMask not found! Please install the MetaMask browser extension first.');
-                    resetButton();
-                    return;
-                }
-                
-                showStatus('🔄 Requesting wallet connection...');
-                
-                const accounts = await window.ethereum.request({
-                    method: 'eth_requestAccounts'
-                });
-                
-                if (accounts.length > 0) {
-                    const walletAddress = accounts[0];
-                    const connectionToken = generateToken(walletAddress);
-                    
-                    // Store connection data
-                    connectionData = {
-                        address: walletAddress,
-                        token: connectionToken,
-                        timestamp: Date.now(),
-                        connected: true
-                    };
-                    
-                    // Save to localStorage for polling detection
-                    localStorage.setItem('securevault_connection', JSON.stringify(connectionData));
-                    
-                    // Also try to save via API call (if you implement backend)
-                    await saveConnectionToBackend(connectionData);
-                    
-                    // Show success message
-                    document.getElementById('status').style.display = 'none';
-                    document.getElementById('success-message').style.display = 'block';
-                    btn.style.display = 'none';
-                    
-                    console.log('✅ Wallet connection saved:', walletAddress);
-                }
-                
-            } catch (error) {
-                console.error('Connection error:', error);
-                
-                if (error.code === 4001) {
-                    showStatus('❌ Connection rejected. Please try again and approve the connection.');
-                } else if (error.code === -32002) {
-                    showStatus('⏳ MetaMask is already processing a request. Please check MetaMask.');
-                } else {
-                    showStatus(`❌ Connection failed: ${error.message}`);
-                }
-                
-                resetButton();
-            }
+     async function connectMetaMask() {
+    const btn = document.getElementById('metamask-btn');
+    
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>Connecting...';
+        
+        if (typeof window.ethereum === 'undefined') {
+            showStatus('❌ MetaMask not found! Please install MetaMask browser extension.');
+            resetButton();
+            return;
         }
+        
+        showStatus('🔄 Requesting wallet connection...');
+        
+        const accounts = await window.ethereum.request({
+            method: 'eth_requestAccounts'
+        });
+        
+        if (accounts.length > 0) {
+            const walletAddress = accounts[0];
+            const connectionToken = generateToken(walletAddress);
+            
+            connectionData = {
+                address: walletAddress,
+                token: connectionToken,
+                timestamp: Date.now(),
+                connected: true
+            };
+            
+            // 🧠 Tell the Flutter desktop app you've connected
+            await fetch('http://127.0.0.1:5050/wallet-connect', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                address: walletAddress,
+                token: connectionToken
+              }),
+            });
+            
+            showStatus('✅ Wallet connected! You can return to SecureVault.', 'success');
+            document.getElementById('success-message').style.display = 'block';
+            btn.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Connection error:', error);
+        
+        if (error.code === 4001) {
+            showStatus('❌ Connection rejected. Please try again and approve it.');
+        } else if (error.code === -32002) {
+            showStatus('⏳ MetaMask is already processing a request.');
+        } else {
+            showStatus(`❌ Connection failed: ${error.message}`);
+        }
+        
+        resetButton();
+    }
+}
+
         
         // Save connection to backend (optional - implement if needed)
         async function saveConnectionToBackend(data) {
